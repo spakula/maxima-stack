@@ -1,0 +1,90 @@
+rand:random;
+
+/* D_4: a,b | a^4=b^2=1, bab=a^{-1} */
+/* D_4: 1 a a^2 a^3 b ba ba^2 ba^3 */
+/*      1 2 3   4   5 6  7    8    */
+D4["g"]:[ [1,2,3,4,5,6,7,8],
+          [2,3,4,1,8,5,6,7],
+          [3,4,1,2,7,8,5,6],
+          [4,1,2,3,6,7,8,5],
+          [5,6,7,8,1,2,3,4],
+          [6,7,8,5,4,1,2,3],
+          [7,8,5,6,3,4,1,2],
+          [8,5,6,7,2,3,4,1]];
+D4["i"]:[1,4,3,2,5,6,7,8]; /* inverses */
+D4["o"]:[1,4,2,4,2,2,2,2]; /* orders */
+D4["p"]:2;             /* whose powers we want to ask for? */
+D4["pows"]: [1,2,3,4]; /* ... and they are... */
+
+/* Q: a,b | a^4=1, a^2=b^2, aba=b */
+/* Q: 1 a a^2 a^3 b ba ba^2 ba^3 */
+/* https://proofwiki.org/wiki/Quaternion_Group/Group_Presentation */
+Q["g"]:[ [1,2,3,4,5,6,7,8],
+         [2,3,4,1,6,7,8,5],
+         [3,4,1,2,7,8,5,6],
+         [4,1,2,3,8,5,6,7],
+         [5,8,7,6,3,2,1,4],
+         [6,5,8,7,4,3,2,1],
+         [7,6,5,8,1,4,3,2],
+         [8,7,6,5,2,1,4,3]];
+Q["i"]:[1,4,3,2,7,8,5,6]; /* inverses */
+Q["o"]:[1,4,2,4,4,4,4,4]; /* orders */
+Q["p"]:2;             /* whose powers we want to ask for? */
+Q["pows"]: [1,2,3,4]; /* ... and they are... */
+
+/* COMPRESSED VERSION IN STACK */
+
+/* D_4: a,b | a^4=b^2=1, bab=a^{-1} */
+/* D_4: 1 a a^2 a^3 b ba ba^2 ba^3 */
+/*      1 2 3   4   5 6  7    8    */
+D4["g"]:[ [1,2,3,4,5,6,7,8],[2,3,4,1,8,5,6,7],[3,4,1,2,7,8,5,6],[4,1,2,3,6,7,8,5],[5,6,7,8,1,2,3,4],[6,7,8,5,4,1,2,3],[7,8,5,6,3,4,1,2],[8,5,6,7,2,3,4,1]];
+D4["i"]:[1,4,3,2,5,6,7,8]; /* inverses */
+D4["o"]:[1,4,2,4,2,2,2,2]; /* orders */
+D4["p"]:2;             /* whose powers we want to ask for? */
+D4["pows"]: [1,2,3,4]; /* ... and they are... */
+
+/* Q: a,b | a^4=1, a^2=b^2, aba=b */
+/* Q: 1 a a^2 a^3 b ba ba^2 ba^3 */
+/* https://proofwiki.org/wiki/Quaternion_Group/Group_Presentation */
+Q["g"]:[ [1,2,3,4,5,6,7,8],[2,3,4,1,6,7,8,5],[3,4,1,2,7,8,5,6],[4,1,2,3,8,5,6,7],[5,8,7,6,3,2,1,4],[6,5,8,7,4,3,2,1],[7,6,5,8,1,4,3,2],[8,7,6,5,2,1,4,3]];
+Q["i"]:[1,4,3,2,7,8,5,6]; /* inverses */
+Q["o"]:[1,4,2,4,4,4,4,4]; /* orders */
+Q["p"]:2;             /* whose powers we want to ask for? */
+Q["pows"]: [1,2,3,4]; /* ... and they are... */
+GS:[D4,Q];
+
+labs : [alpha,beta,gamma,delta,epsilon,phi,psi,chi];
+
+/* QUESTION SETUP */
+group_select:1+rand(length(GS));
+G:GS[group_select];
+shuf:random_permutation([1,2,3,4,5,6,7,8]); /* labels to group-elts */
+permutation_inverse(p) := block([ip:makelist(i, i, 1, length(p))],for i:1 thru length(p) do ip[p[i]] : i,ip);
+ishuf:permutation_inverse(shuf); /* group-elts to labels */
+
+format_permutation(p) := matrix(makelist(i,i,length(p)),p);
+print_shuf:format_permutation(shuf);
+
+ident_mc : map(lambda([i],[labs[i],is(shuf[i]=1)]),[1,2,3,4,5,6,7,8]);
+
+orders_ta : map(lambda([i],G["o"][shuf[i]]),[1,2,3,4,5,6,7,8]);
+invers_mc : map(lambda([j],map(lambda([i],[labs[i],is(shuf[i]=G["i"][shuf[j]])]),[1,2,3,4,5,6,7,8])),[1,2,3,4,5,6,7,8]);
+invers_ta : map(lambda([i],labs[ishuf[G["i"][shuf[i]]]]),[1,2,3,4,5,6,7,8]);
+
+powers_elt : labs[ishuf[G["p"]]];
+powers_mc : map(lambda([i],[labs[i],member(shuf[i],G["pows"])]),[1,2,3,4,5,6,7,8]);
+powers_ta : map(lambda([i],labs[ishuf[i]]),G["pows"]);
+
+ident_lab : labs[ishuf[1]];
+
+demo_elt : powers_elt;
+demo_ta : powers_ta;
+
+
+We demonstrate how to find the order and the inverse using the element \({@demo_elt@}\). To find the order, we are looking for the smallest positive integer \(n\), so that \[{@demo_elt@}^n = \underbrace{{@demo_elt@}*{@demo_elt@}*\dots*{@demo_elt@}}_{n\text{ times}} = {@ident_lab@} \quad\text{ (the identity element)}.\]
+
+We do this by computing the successive powers of \({@demo_elt@}\), and stop when we reach \({@ident_lab@}\).
+First, \({@demo_elt@}^1 = {@demo_elt@} \neq {@ident_lab@}\), so we are not done.
+Next, \({@demo_elt@}^2 = {@demo_elt@}*{@demo_elt@} = {@demo_ta[3]@} \neq {@ident_lab@}\), so we are not done.
+Continuing, \({@demo_elt@}^3 = {@demo_elt@}^2*{@demo_elt@} = {@demo_ta[3]@}*{@demo_elt@} = {@demo_ta[4]@} \neq {@ident_lab@}\), so still not done.
+Finally, we get \({@demo_elt@}^4 = {@demo_elt@}^3*{@demo_elt@} = {@demo_ta[4]@}*{@demo_elt@} = {@ident_lab@}\), so we are done, and the order of \({@demo_elt@}\) is \(4\).

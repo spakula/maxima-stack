@@ -1,0 +1,77 @@
+/* XXX:JS:PREPARE **/
+
+rand:random$
+
+/* XXX:JS:PART1 **/
+
+/* dealing with permutations */
+/* mostly from https://github.com/andrejv/discrete.mac/blob/master/discrete.mac */
+/* a permutation is represented by a list, i-th position is p(i) */
+/* cycles are also lists, so be careful */
+/* multiplication 'from the right', like function composition */
+/* checks aren't done, so need to do them manually before applying functions */
+random_permutation2(n) := random_permutation(makelist(i,i,n));
+permutation_product(p, [args]) := if length(args)=0 then p else if length(args)=1 then  block([q:args[1]], makelist(p[q[i]],i,1,length(p))) else permutation_product(p, apply('permutation_product, args));
+permutation_inverse(p) := block([ip:makelist(i, i, 1, length(p))],for i:1 thru length(p) do ip[p[i]] : i,ip);
+permutation_from_disjoint_cycles(cl, [n]) := block([p],if length(n)=1 then n:first(n) else n:lmax(flatten(cl)),p: makelist(i, i, 1, n),for c in cl do (for i:1 thru length(c)-1 do p[c[i]] : p[c[i+1]],p[c[length(c)]] : c[1]),p);
+permutation_from_cycles(cl, [n]) := block([p],if length(n)=1 then n:first(n) else n:lmax(flatten(cl)),p: makelist(i, i, 1, n),for c in reverse(cl) do p:permutation_product(permutation_from_disjoint_cycles([c],n),p),p);
+permutation_to_cycles(p) := block([used : makelist(0, i, 1, length(p)), cycles : []],for i:1 thru length(p) do (if used[i]=0 then if p[i]#i then block([c : [], j:i],while used[j]=0 do (used[j]:1,c : cons(j, c),j : p[j]),cycles : cons(reverse(c), cycles))),reverse(cycles));
+permutation_to_transpositions(p) := block([cycles: permutation_to_cycles(p)],reverse(xreduce('append,map(lambda([c],if length(c)<3 then [c] else block([c1: first(c), cr: rest(c)],map(lambda([x_], [c1, x_]), cr))),cycles))));
+permutation_from_transpositions(tr, [n]) := block([p],if length(n)=1 then n:n[1] else n:lmax(flatten(tr)),p: makelist(i,i,n),for t in reverse(tr) do p: psubst([t[1]=t[2], t[2]=t[1]], p),p);
+permutation_sign(p) := block([c:permutation_to_cycles(p)],c: apply("+", map(length, c)) - length(c),if evenp(c) then 1 else -1);
+_lcm(a,b) := a*b/gcd(a,b);
+permutation_order(p) := block([ci: permutation_to_cycles(p)],if ci=[] then 0 else xreduce(_lcm, map(length, ci)));
+permutation_cycle_structure(p) := map(length, permutation_to_cycles(p));
+is_permutation(p) := listp(p) and is(sort(p)=makelist(i,i,length(p)));
+is_cycle(t,[n]) := listp(t) and lreduce("and", map('integerp, t)) and is(length(unique(t))=length(t)) and block([],if length(n)=1 then n:first(n) else n:lmax(t),lreduce("and",map(lambda([k], is(k>=1 and k<=n)),t)));
+are_cycles(l,n) := listp(l) and lreduce("and", map(lambda([t],is_cycle(t,n)),l));
+are_disjoint_cycles(l,n) := are_cycles(l,n) and block([f:flatten(l)], is(length(f)=length(unique(f))));
+is_transposition(t,[n]) := listp(t) and is(length(t)=2) and lreduce("and", map('integerp, t)) and not(is(t[1]=t[2])) and block([],if length(n)=1 then n:first(n) else n:lmax(t),lreduce("and",map(lambda([k], is(k>=1 and k<=n)),t)));
+are_transpositions(l,n) := listp(l) and lreduce("and", map(lambda([t],is_transposition(t,n)),l));
+matchfix("<<",">>"); texput ("<<", [" \\langle ", " \\rangle "], matchfix);
+matchfix("<<<",">>>"); texput ("<<<", ["", "", " \\circ "], matchfix);
+format_cycle(c) := tex1(apply("<<",c));
+format_cycles(foo) := tex1(apply("<<<", map(lambda([r],apply("<<",r)),foo)));
+format_permutation(p) := matrix(makelist(i,i,length(p)),p);
+
+cycles_enter_example_p : format_cycles([[1,2,5],[3,4]]);
+cycles_enter_example_s : "[[1,2,5],[3,4]]";
+transp_enter_example_p : format_cycles([[1,2],[1,3],[2,4]]);
+transp_enter_example_s : "[[1,2],[1,3],[2,4]]";
+
+/* QUESTION SETUP BEGINS HERE */
+n : 9;
+/* the final random permutation will be a conjugate of one of these; this fixed the cycle type */
+pp_types : [ makelist(1+mod(i,n),i,n) ];
+tt_cycle_types : [[[1,2,3],[4,5,6],[7,8]]];
+tt_types : map(lambda([t],permutation_from_cycles(t,n)), tt_cycle_types);
+/* each of tt_cycle_types needs at least 2 cycles, at least one length at least 3: for the generic feedback to work */
+conj : random_permutation2(n); conj1 : permutation_inverse(conj);
+p : permutation_product(conj,pp_types[1+rand(length(pp_types))],conj1);
+pp_p : format_permutation(p);
+t : permutation_product(conj,tt_types[1+rand(length(pp_types))],conj1);
+tt_p : format_permutation(t);
+t_transp : permutation_to_transpositions(t);
+t_transp_p : format_cycles(t_transp);
+t_cycles : permutation_to_cycles(t);
+t_cycles : sort(t_cycles, lambda([a,b],length(a)>length(b)));
+t_cycles_p : format_cycles(t_cycles);
+t_sign : permutation_sign(t);
+t_order : permutation_order(t);
+tc1 : first(t_cycles);
+tc1_p : format_cycle(tc1);
+tc1_fixedset : setdifference(setify(makelist(i,i,n)),setify(tc1));
+tc2 : second(t_cycles);
+tc2_p : format_cycle(tc2);
+p2 : permutation_product(p,p);
+p2_p : format_permutation(p2);
+p2_cycles : permutation_to_cycles(p2);
+p2_cycles_p : format_cycles(p2_cycles);
+p2_order : permutation_order(p2);
+p2_transp : permutation_to_transpositions(p2);
+p2_transp_p : format_cycles(p2_transp);
+p2_sign : 1;
+pt : permutation_product(p,t);
+pt_p : format_permutation(pt);
+t1 : permutation_inverse(t);
+t1_p : format_permutation(t1);

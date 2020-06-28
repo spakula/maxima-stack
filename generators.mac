@@ -1,0 +1,138 @@
+/* generating various matrices with "nice" numbers */
+
+/* STACK helpers */
+load("stack_rands.mac")$
+
+
+
+/* Generate matrices with a given Jordan normal form and nice diagonalising matrix */
+/* using LU decomposition to get a matrix in SL(n,Z) */
+lucoeffs:[-2,-1,0,1,2]; /* numbers allowed for L U */
+l:ident(3); l[2,1]:rand(lucoeffs); l[3,1]:rand(lucoeffs); l[3,2]:rand(lucoeffs);
+u:ident(3); u[1,2]:rand(lucoeffs); u[1,3]:rand(lucoeffs); u[2,3]:rand(lucoeffs);
+slmat: l . u;
+/* how large do we allow the eigenvalues to be */
+control:3;
+/* Jordan normal form matrix, 2 eigenvalues, one repeated */
+diagmat:zeromatrix(3,3);
+diagmat[1,1]:rand_with_prohib(-control,control,[0]);
+diagmat[2,2]:rand_with_prohib(-control,control,[0,diagmat[1,1]]);
+diagmat[3,3]:diagmat[2,2];
+/* non-diagonalisable */
+diagmat[2,3]:1;
+/* the main matrix */
+a: slmat . diagmat . invert(slmat);
+
+
+
+/* Generate a 2x2 matrix with complex eigenvalues */
+a : rand_with_prohib(-5,5,[0]); d : -a; /* choose a,d so that a+d is even */
+imp : 1+rand(4);  /* imaginary part of an eigval */
+/* choose b,c so that bc=ad-(a+d)^2/4-imp^2 */
+bc : a*d - 1/4 * (a+d)^2 - imp^2;
+b : (if primep(bc) then 1 else first(flatten(ifactors(abs(bc))))) *rand([-1,1]);
+c : bc / b;
+m : matrix([a,b],[c,d]);
+eigvals : matrix([ (a+d)/2 + i*imp, (a+d)/2 - i*imp ]);
+
+
+
+/* Generate a 2x2 symmetric matrix with nice eigenvalues/eigenvectors */
+/* From: https://www.researchgate.net/publication/228855146_Setting_linear_algebra_problems */
+[a,b]:rand_selection([-2,-1,1,2],2);
+kk:1; /* the eigvals will be kk*(a^2+b^2) apart */
+m : kk*matrix([b*b,a*b],[a*b,a*a]);  /* eigvals are 0, kk*(a^2+b^2) */
+tt : rand_with_step(0,kk*a*a+kk*b*b,1);
+m : m - tt*ident(2);  /* can shift by any*ident(2) */
+gg : gcd(a,b);
+eigvecx : matrix([a/gg],[-b/gg]); if a<0 then eigvecx : -eigvecx;
+eigvecy : matrix([b/gg],[a/gg]); if b<0 then eigvecy : -eigvecy;
+eigvalx : -tt;
+eigvaly : kk*a*a+kk*b*b-tt;
+eigvalmat : matrix([eigvalx,eigvaly]);
+
+
+
+/* Aux functions to scale vectors: remove fractions, or common divisor */
+reduce_gcd_vec(v):=block([d],d:lreduce('gcd,list_matrix_entries(v)),v/d);
+clear_denoms_list_getdenom(l):=block([varr],denom(ratsimp(l.makelist(varr[i],i,1,length(l)))));
+clear_denoms_list(l):=clear_denoms_list_getdenom(l)*l;
+clear_denoms_mat(v):=clear_denoms_list_getdenom(list_matrix_entries(v))*v;
+
+
+
+/* Generate 3x3 rational rotation matrices (i.e. orthogonal) */
+/* From: https://math.stackexchange.com/questions/607540/simple-examples-of-3-times-3-rotation-matrices */
+refl_fn(v,n):=v-2*(v.n)*n/(n.n); /* reflection in the plane with normal n (function) */
+refl_mat(n):=transpose(apply(matrix,map(lambda([v],refl_fn(v,n)),args(ident(3))))); /* a reflection matrix */
+/* ↓ For rational entries; the denominators are usually 3,7,11,17,19 (a^2+b^2+c^2 ?/2) */
+[a,b]:rand_selection([-3,-2,-1,1,2,3],2); c:rand([-2,-1,1,2]);
+/* ↓ Compose with a random reflection with a single axis flip to get a rotation */
+m : lreduce(".",random_permutation([refl_mat([a,b,c]),apply(diag_matrix,random_permutation([-1,1,1]))]));
+dd : clear_denoms_list_getdenom(list_matrix_entries(m)); /* denominator to clear */
+
+/* Rotations after Steele 1 */
+/* about (unit) u (column 3-vector), by theta */
+rot_mat(u,theta):=simplify(cos(theta)*ident(3) + u.transpose(u)*(1-cos(theta))+sin(theta)*matrix([0,-u[3,1],u[2,1]],[u[3,1],0,-u[1,1]],[-u[2,1],u[1,1],0]));
+
+
+
+/* BLOCK: try to run the strategy from Steele to get integer symmetric matrices, */
+/*        with smaller numbers, but not so much control over eigenvalues,*/
+/*        i.e. "cancel" the denominators from the orthogonal matrices by*/
+/*        solving some linear system.*/
+/* INPUT: dd:denominator from m:orthogonal matrix*/
+mm : simplify(dd^2*(m . diag_matrix(t1,t2,t3) . transpose(m) - matrix([s1,0,0],[s2,s4,0],[s3,s5,s6])));
+mm[1,2]:0; mm[1,3]:0; mm[2,3]:0;
+zz:coefmatrix(delete(0,list_matrix_entries(mm)), [t1,t2,t3,s1,s2,s3,s4,s5,s6]);
+/* the 1st three coords of any integer solution to this system (i.e. the nullspace of zz),*/
+/* are eigenvalues which make m.diag.m^t integer */
+/* This is UNFINISHED... */
+
+
+
+
+/* Generating a static list of "OK" 3x3 symmetric matrices with small entries */
+load("combinatorics")$
+permmats:map(lambda([p],apply(matrix,permute(p,args(ident(3))))),perms(3))$
+work:[-1,0,1];
+mats:makelist(matrix([s[1],s[2],s[3]],[s[2],s[4],s[5]],[s[3],s[5],s[6]]),s,cartesian_product_list(work,work,work,work,work,work))$
+porbs:unique(map(lambda([m],setify(makelist(p.m.transpose(p),p,permmats))),mats))$ /* orbits under permmats action */
+orbs:unique(map(lambda([s],union(s,map(lambda([m],-1*m),s))),porbs))$ /* further mod by (-1)* action */
+reps:map(first,orbs)$ /* one representative from each S_3 x Z/2 orbit */
+is_diagonal3(m):=is(m=diag_matrix(m[1,1],m[2,2],m[3,3]))$
+reps:sublist(reps,lambda([m],not(is_diagonal3(m))))$ /* ignore the diagonal ones */
+simplify_eig(t):=[[map(fullratsimp,t[1][1]),t[1][2]],map(lambda([l],map(fullratsimp,l)),t[2])]$
+evecs_all:map(lambda([e],[e,simplify_eig(eigenvectors(e))]),reps)$
+/* the next two criteria seem to get the same result */
+/* evecs2:sublist(evecs_all,lambda([ee],is(slength(string(ee[2]))<200)))$ /* filter the ones which can be reasonably simplified by maxima */
+evecs:sublist(evecs_all,lambda([ee],lreduce(lambda([a,b],a or b),map(integerp,ee[2][1][1]))))$ /* filter the ones with at least one integer eigenvalue */
+evecs_i:sublist(evecs,lambda([ee],lreduce(lambda([a,b],a and b),map(integerp,ee[2][1][1]))))$ /* with all integer eigenvalues */
+evecs_ni:sublist(evecs,lambda([ee],not(lreduce(lambda([a,b],a and b),map(integerp,ee[2][1][1])))))$ /* with _not all_ integer eigenvalues */
+evecs_ni_i:sublist(evecs_ni,lambda([ee],disjointp(setify(lreduce(append,ee[2][2])),setify(args(ident(3))))))$ /* filter block-diagonal ones */
+/* print the results into a tex file; NOTE: appends to the file! */
+/*
+map(lambda([e],tex(e,"evecs_i.tex")),evecs_i);
+map(lambda([e],tex(e,"evecs_ni.tex")),evecs_ni);
+map(lambda([e],tex(e,"evecs_ni_i.tex")),evecs_ni_i);
+*/
+root17_cases:[matrix([-1,-1,-1],[-1,-1,-1],[-1,-1,1]),matrix([-1,-1,-1],[-1,1,1],[-1,1,1]),matrix([-1,-1,1],[-1,1,-1],[1,-1,1])]$ /* by inspecting the latex output, these have sqrt(17) */
+use_mats:map(first,evecs_ni_i)$  /* just the list of matrices */
+for m in root17_cases do use_mats:delete(m,use_mats)$  /* remove some unwanted ones */
+
+/* the above produces a list of 23 symmetric ±1,0-valued matrices in 'use_mats' */
+/* all have 3 distinct eigenvalues and are not block diagonal */
+/* conjugating by a random permutation and multiplying by ±1 gives 180 matrices */
+/* 180 got by: length(unique(flatten(map(lambda([m],map(lambda([t],t[1]*t[2].m.transpose(t[2])),cartesian_product_list([-1,1],permmats))),use_mats)))); */
+/* still can shift by an integer scalar matrix */
+/* now save what's required for copy/paste */
+fi:openw("sym3mats.txt")$
+printf(fi,concat("permmats:",string(permmats),";"))$
+newline(fi)$
+printf(fi,concat("use_mats:",string(use_mats),";"))$
+newline(fi)$
+printf(fi,"p:rand(permmats);")$
+newline(fi)$
+printf(fi,"a:rand([-1,1])*p.rand(use_mats).transpose(p)+rand([-3,-2,-1,0,1,2,3])*ident(3);")$
+newline(fi)$
+close(fi);
