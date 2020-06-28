@@ -1,6 +1,6 @@
 # maxima-stack
 
-My maxima snippets for use with STACK. Reading comments in the individual files may perhaps help a bit.
+My [maxima](maxima.sourceforge.net/) snippets for use with [STACK](https://github.com/maths/moodle-qtype_stack/). Reading comments in the individual files may perhaps help a bit.
 
 `generators.mac` contains several separate bits to generate small matrices with "nice" properties (e.g. integer, nice eigenvalues and eigenvectors, and such).
 
