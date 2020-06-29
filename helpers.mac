@@ -1,0 +1,13 @@
+
+/* Aux functions to scale vectors: remove fractions, or common divisor */
+reduce_gcd_vec(v):=block([d],d:lreduce('gcd,list_matrix_entries(v)),v/d);
+clear_denoms_list_getdenom(l):=block([varr],denom(ratsimp(l.makelist(varr[i],i,1,length(l)))));
+clear_denoms_list(l):=clear_denoms_list_getdenom(l)*l;
+clear_denoms_mat(v):=clear_denoms_list_getdenom(list_matrix_entries(v))*v;
+
+
+/* Aux functions to generate unevaluated expressions for the dot product of lists */
+/* assumes v1 and v2 are lists of the same length */
+/* should be used when simp:false; */
+dotprod_comp1_list(v1,v2):=matrix([ lreduce("+",map("*",v1,v2)) ]);
+dotprod_comp2_list(v1,v2):=matrix([ lreduce("+",ev(map("*",v1,v2),simp,ratsimp)) ]);
