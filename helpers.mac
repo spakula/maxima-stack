@@ -11,3 +11,5 @@ clear_denoms_mat(v):=clear_denoms_list_getdenom(list_matrix_entries(v))*v;
 /* should be used when simp:false; */
 dotprod_comp1_list(v1,v2):=matrix([ lreduce("+",map("*",v1,v2)) ]);
 dotprod_comp2_list(v1,v2):=matrix([ lreduce("+",ev(map("*",v1,v2),simp,ratsimp)) ]);
+
+col_list(m,i):=first(args(transpose(col(m,i))));
