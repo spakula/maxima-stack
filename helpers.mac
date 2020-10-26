@@ -13,3 +13,20 @@ dotprod_comp1_list(v1,v2):=matrix([ lreduce("+",map("*",v1,v2)) ]);
 dotprod_comp2_list(v1,v2):=matrix([ lreduce("+",ev(map("*",v1,v2),simp,ratsimp)) ]);
 
 col_list(m,i):=first(args(transpose(col(m,i))));
+
+covect(l):=transpose(matrix(l));
+
+/* Flats in parametric form manipulation; from https://stack2.maths.ed.ac.uk/demo2018/question/type/stack/doc/doc.php/CAS/Linear_algebra.md */
+sa1:transpose(matrix([2*(s-4)+t+8,s,4+s]));
+sa1:expand(sa1); /* clean up */
+lvars:listofvars(sa1); /* get the variables */
+
+/* check if the expression in linear in variables */
+deg:apply(max, maplist(lambda([ex], hipow(sa1, ex)), lvars));
+deg:max(deg,hipow(subst(map(lambda([var],var=ppppp),lvars),sa1),ppppp));
+
+/* extract the vectors from sa1 */
+coefmat:augcoefmatrix(flatten(args(sa1)),lvars); /* or coefmatrix */
+
+/* is a vector in the described set? (expr,vect column vectors)*/
+is_vect_in_space(expr,vect):=is(length(ev(linsolve(flatten(args(expr-vect)),listofvars(expr))))>0);
