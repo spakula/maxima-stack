@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+<!-- question: 138603  -->
+  <question type="stack">
+    <name>
+      <text>Permutation computations (with solution)</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Let \(\sigma = {@pp_p@} \in S_{{@n@}}\). Compute the following, and enter using the notation as instructed:<br></p>
+<ul>
+    <li style="margin-bottom:20px;">In disjoint cycle notation, \(\sigma^2 = \) [[input:ans_pi2_cycles]] [[validation:ans_pi2_cycles]]<br> (Enter this as a list of lists; for example \({@cycles_enter_example_p@}\) should be entered as
+        <code>{@cycles_enter_example_s@}</code>).</li>
+
+    <li style="margin-bottom:20px;">In disjoint cycle notation, \(\sigma^{-1}\) = [[input:ans_pi1_cycles]] [[validation:ans_pi1_cycles]]<br>(Enter this as a list of lists; for example \({@cycles_enter_example_p@}\) should be entered as
+        <code>{@cycles_enter_example_s@}</code>).<br></li><li>\(\mathrm{sgn}(\sigma^2)=\) [[input:ans_pi2_sign]] [[validation:ans_pi2_sign]]</li>
+</ul>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<h4>General procedures<br></h4>
+<p>Permutations in \(S_{@n@}\) are really functions mapping \(\{1,2,\dots,{@n@}\}\) to \(\{1,2,\dots,{@n@}\}\). For example, \(\sigma = {@pp_p@} \in S_{@n@}\) is a function mapping \(1\) to \({@p[1]@}\), \(2\) to \({@p[2]@}\), \(3\) to \({@p[3]@}\), etc.
+    The inverse and composition refer to taking the inverse and composing these functions.</p>
+<p><b>Composition</b><br>The composition \(\sigma\circ\sigma = {@pp_p@}\circ{@pp_p@}\) is a function which maps:</p>
+<ul>
+    <li>\(1\) to \(\sigma(\sigma(1))=\sigma({@p[1]@})={@p[p[1]]@}\),</li>
+    <li>\(2\) to \(\sigma(\sigma(2))=\sigma({@p[2]@})={@p[p[2]]@}\),</li>
+    <li>\(3\) to \(\sigma(\sigma(3))=\sigma({@p[3]@})={@p[p[3]]@}\),</li>
+    <li>etc.</li>
+</ul>
+<p>We record this in a "table", writing \[\sigma\circ\sigma = {@p2_p@}.\]</p>
+<p><b>Inverse</b><br>Since \(\sigma(1)={@p[1]@}\), we have for the inverse that \(\sigma^{-1}({@p[1]@}) = 1\). Continuing, \(\sigma(2)={@p[2]@}\) gives \(\sigma^{-1}({@p[2]@})=2\). We continue until we exhaust all numbers \(1,2,\dots,{@n@}\), and record
+    the result into a table, as \[\sigma^{-1} = {@p1_p@}.\]</p>
+
+<p><b>Cycles</b><br>The cycle notation offers an alternative way of denoting some of the permutations. For example the symbol \({@p_cycles1_p@}\) represents the function which maps \({@p_cycles[1][1]@}\) to \({@p_cycles[1][2]@}\), \({@p_cycles[1][2]@}\)
+    to \({@p_cycles[1][3]@}\), ..., and \({@last(p_cycles[1])@}\) to \({@first(p_cycles[1])@}\); and furthermore it fixes the remaining numbers, that is, numbers from \({@pc1_fixedset@}\).<br><br>By inspection, we see that this matches what \(\sigma={@pp_p@}\)
+    does on the numbers from \({@setify(p_cycles[1])@}\). However, it doesn't match what \(\sigma\) does on, for example, \({@p_cycles[2][1]@}\): \({@p_cycles1_p@}\) fixes it, while \(\sigma({@p_cycles[2][1]@}) = {@p[p_cycles[2][1]]@}\).<br><br>So to
+    write \(\sigma\) in disjoint cycle notation, we continue to find another cycle that partially matches \(\sigma\): we start with \({@p_cycles[2][1]@}\). We see that \(\sigma({@p_cycles[2][1]@})={@p_cycles[2][2]@}\), so we start writing down "\(\langle
+    {@p_cycles[2][1]@}, {@p_cycles[2][2]@}, \)" and repeat the procedure: find \(\sigma({@p_cycles[2][2]@})\), write it down, etc.<br>At some point, the cycle will necessarily close, that is, we get \(\sigma(\text{some number}) = {@p_cycles[2][1]@}\).
+    Then we are finished with this cycle. In our worked example, we obtain \({@p_cycles2_p@}\).<br><br>At this point, we found two cycles that match what \(\sigma\) does, namely \({@p_cycles1_p@}\) and \({@p_cycles2_p@}\). We inspect \(\sigma\) to see
+    if there are some further numbers in \(\{1,2,\dots,{@n@}\}\) that are moved by \(\sigma\), but not dealt with in the two cycles. If there are, we need to repeat the previous step of finding another cycle. If there are none, we are finished. In our
+    case, we would obtain\[\sigma = {@p_cycles_p@}.\]</p>
+<p>Applying this procedure, we obtain: \begin{align*} \sigma^2 &amp;= {@p2_p@} = {@p2_cycles_p@}\\ \sigma^{-1} &amp;= {@p1_p@} = {@p1_cycles_p@}.\end{align*}</p>
+<p><b>Sign</b><br>
+  Sign of a permutation is either +1 or -1, and in this problem we do not really need to know how is it computed (although see Definition 1.9 in the Lecture Notes for that), we just need to apply Theorem 1.10(b), which yields \[\mathrm{sgn}(\sigma^2) = \left(\mathrm{sgn}(\sigma)\right)^2 = 1.\]
+</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>4</defaultgrade>
+    <penalty>0</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <stackversion>
+      <text>2020042000</text>
+    </stackversion>
+    <questionvariables>
+      <text><![CDATA[/* dealing with permutations */
+/* mostly from https://github.com/andrejv/discrete.mac/blob/master/discrete.mac */
+/* a permutation is represented by a list, i-th position is p(i) */
+/* cycles are also lists, so be careful */
+/* multiplication 'from the right', like function composition */
+/* checks aren't done, so need to do them manually before applying functions */
+random_permutation2(n) := random_permutation(makelist(i,i,n));
+permutation_product(p, [args]) := if length(args)=0 then p else if length(args)=1 then  block([q:args[1]], makelist(p[q[i]],i,1,length(p))) else permutation_product(p, apply('permutation_product, args));
+permutation_inverse(p) := block([ip:makelist(i, i, 1, length(p))],for i:1 thru length(p) do ip[p[i]] : i,ip);
+permutation_from_disjoint_cycles(cl, [n]) := block([p],if length(n)=1 then n:first(n) else n:lmax(flatten(cl)),p: makelist(i, i, 1, n),for c in cl do (for i:1 thru length(c)-1 do p[c[i]] : p[c[i+1]],p[c[length(c)]] : c[1]),p);
+permutation_from_cycles(cl, [n]) := block([p],if length(n)=1 then n:first(n) else n:lmax(flatten(cl)),p: makelist(i, i, 1, n),for c in reverse(cl) do p:permutation_product(permutation_from_disjoint_cycles([c],n),p),p);
+permutation_to_cycles(p) := block([used : makelist(0, i, 1, length(p)), cycles : []],for i:1 thru length(p) do (if used[i]=0 then if p[i]#i then block([c : [], j:i],while used[j]=0 do (used[j]:1,c : cons(j, c),j : p[j]),cycles : cons(reverse(c), cycles))),reverse(cycles));
+permutation_sign(p) := block([c:permutation_to_cycles(p)],c: apply("+", map(length, c)) - length(c),if evenp(c) then 1 else -1);
+_lcm(a,b) := a*b/gcd(a,b);
+is_permutation(p) := listp(p) and is(sort(p)=makelist(i,i,length(p)));
+is_cycle(t,[n]) := listp(t) and lreduce("and", map('integerp, t)) and is(length(unique(t))=length(t)) and block([],if length(n)=1 then n:first(n) else n:lmax(t),lreduce("and",map(lambda([k], is(k>=1 and k<=n)),t)));
+are_cycles(l,n) := listp(l) and lreduce("and", map(lambda([t],is_cycle(t,n)),l));
+are_disjoint_cycles(l,n) := are_cycles(l,n) and block([f:flatten(l)], is(length(f)=length(unique(f))));
+matchfix("<<",">>"); texput ("<<", [" \\langle ", " \\rangle "], matchfix);
+matchfix("<<<",">>>"); texput ("<<<", ["", "", " \\circ "], matchfix);
+format_cycle(c) := tex1(apply("<<",c));
+format_cycles(foo) := tex1(apply("<<<", map(lambda([r],apply("<<",r)),foo)));
+format_permutation(p) := matrix(makelist(i,i,length(p)),p);
+
+cycles_enter_example_p : format_cycles([[1,2,5],[3,4]]);
+cycles_enter_example_s : "[[1,2,5],[3,4]]";
+transp_enter_example_p : format_cycles([[1,2],[1,3],[2,4]]);
+transp_enter_example_s : "[[1,2],[1,3],[2,4]]";
+
+/* QUESTION SETUP BEGINS HERE */
+n : 6;
+/* the final random permutation will be a conjugate of one of these; this fixed the cycle type */
+pp_types : [ [[1,2,3,4],[5,6]], [[1,2,3],[4,5],[6]] ];
+conj : random_permutation2(n); conj1 : permutation_inverse(conj);
+p : permutation_product(conj,permutation_from_disjoint_cycles(pp_types[1+rand(length(pp_types))]),conj1);
+pp_p : format_permutation(p);
+p_cycles : permutation_to_cycles(p);
+p_cycles : sort(p_cycles, lambda([a,b],length(a)>length(b)));
+p_cycles1_p : format_cycles([p_cycles[1]]);
+p_cycles2_p : format_cycles([p_cycles[2]]);
+p_cycles_p : format_cycles(p_cycles);
+pc1_fixedset : setdifference(setify(makelist(i,i,n)),setify(p_cycles[1]));
+p1 : permutation_inverse(p);
+p1_p : format_permutation(p1);
+p1_cycles : permutation_to_cycles(p1);
+p1_cycles : sort(p1_cycles, lambda([a,b],length(a)>length(b)));
+p1_cycles_p : format_cycles(p1_cycles);
+p2 : permutation_product(p,p);
+p2_p : format_permutation(p2);
+p2_cycles : permutation_to_cycles(p2);
+p2_cycles_p : format_cycles(p2_cycles);
+p2_sign : 1;]]></text>
+    </questionvariables>
+    <specificfeedback format="html">
+      <text><![CDATA[<ul>
+    <li>\(\sigma^2\) <b>as a product of disjoint cycles:</b><br>[[feedback:prt_pi2_cycles]]</li>
+    <li>\(\sigma^{-1}\) <b>as a product of disjoint cycles:<br></b>[[feedback:prt_pi1_cycles]]<br><b></b></li>
+  <li><b>The sign</b> \(\mathrm{sgn}(\sigma^2)\):<br>[[feedback:prt_pi2_sign]]</li>
+</ul>]]></text>
+    </specificfeedback>
+    <questionnote>
+      <text>\(\sigma={@p@}\) \(\sigma^2={@p2_cycles@}\) \(\sigma^{-1}={@p1_cycles@}\) </text>
+    </questionnote>
+    <questionsimplify>1</questionsimplify>
+    <assumepositive>0</assumepositive>
+    <assumereal>0</assumereal>
+    <prtcorrect format="html">
+      <text><![CDATA[<span style="font-size: 1.5em; color:green;"><i class="fa fa-check"></i></span> Correct answer, well done.]]></text>
+    </prtcorrect>
+    <prtpartiallycorrect format="html">
+      <text><![CDATA[<span style="font-size: 1.5em; color:orange;"><i class="fa fa-adjust"></i></span> Your answer is partially correct.]]></text>
+    </prtpartiallycorrect>
+    <prtincorrect format="html">
+      <text><![CDATA[<span style="font-size: 1.5em; color:red;"><i class="fa fa-times"></i></span> Incorrect answer.]]></text>
+    </prtincorrect>
+    <multiplicationsign>dot</multiplicationsign>
+    <sqrtsign>1</sqrtsign>
+    <complexno>i</complexno>
+    <inversetrig>cos-1</inversetrig>
+    <logicsymbol>lang</logicsymbol>
+    <matrixparens>(</matrixparens>
+    <variantsselectionseed></variantsselectionseed>
+    <input>
+      <name>ans_pi1_cycles</name>
+      <type>algebraic</type>
+      <tans>p1_cycles</tans>
+      <boxsize>30</boxsize>
+      <strictsyntax>1</strictsyntax>
+      <insertstars>0</insertstars>
+      <syntaxhint>[[1,2,5],[3,4]]</syntaxhint>
+      <syntaxattribute>1</syntaxattribute>
+      <forbidwords></forbidwords>
+      <allowwords></allowwords>
+      <forbidfloat>1</forbidfloat>
+      <requirelowestterms>0</requirelowestterms>
+      <checkanswertype>1</checkanswertype>
+      <mustverify>1</mustverify>
+      <showvalidation>1</showvalidation>
+      <options></options>
+    </input>
+    <input>
+      <name>ans_pi2_cycles</name>
+      <type>algebraic</type>
+      <tans>p2_cycles</tans>
+      <boxsize>30</boxsize>
+      <strictsyntax>1</strictsyntax>
+      <insertstars>0</insertstars>
+      <syntaxhint>[[1,2,5],[3,4]]</syntaxhint>
+      <syntaxattribute>1</syntaxattribute>
+      <forbidwords></forbidwords>
+      <allowwords></allowwords>
+      <forbidfloat>1</forbidfloat>
+      <requirelowestterms>0</requirelowestterms>
+      <checkanswertype>1</checkanswertype>
+      <mustverify>1</mustverify>
+      <showvalidation>2</showvalidation>
+      <options></options>
+    </input>
+    <input>
+      <name>ans_pi2_sign</name>
+      <type>numerical</type>
+      <tans>p2_sign</tans>
+      <boxsize>20</boxsize>
+      <strictsyntax>1</strictsyntax>
+      <insertstars>0</insertstars>
+      <syntaxhint></syntaxhint>
+      <syntaxattribute>0</syntaxattribute>
+      <forbidwords></forbidwords>
+      <allowwords></allowwords>
+      <forbidfloat>1</forbidfloat>
+      <requirelowestterms>0</requirelowestterms>
+      <checkanswertype>1</checkanswertype>
+      <mustverify>1</mustverify>
+      <showvalidation>3</showvalidation>
+      <options></options>
+    </input>
+    <prt>
+      <name>prt_pi1_cycles</name>
+      <value>1.0000000</value>
+      <autosimplify>1</autosimplify>
+      <feedbackstyle>1</feedbackstyle>
+      <feedbackvariables>
+        <text><![CDATA[ans_p1cyc_tuned : if is_cycle(ans_pi1_cycles) then [ans_pi1_cycles] else ans_pi1_cycles;
+ans_p1cyc_are_cycles : are_cycles(ans_p1cyc_tuned,n);
+ans_p1cyc_are_disjoint : are_disjoint_cycles(ans_p1cyc_tuned,n);
+ans_p1cyc_perm : if ans_p1cyc_are_cycles then permutation_from_cycles(ans_p1cyc_tuned,n) else [];
+ans_p1cyc_tuned_p : if ans_p1cyc_are_cycles then format_cycles(ans_p1cyc_tuned) else "";
+ans_p1cyc_perm_p : format_permutation(ans_p1cyc_perm);]]></text>
+      </feedbackvariables>
+      <node>
+        <name>0</name>
+        <answertest>AlgEquiv</answertest>
+        <sans>ans_p1cyc_are_cycles</sans>
+        <tans>true</tans>
+        <testoptions></testoptions>
+        <quiet>1</quiet>
+        <truescoremode>=</truescoremode>
+        <truescore>0.0000000</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>1</truenextnode>
+        <trueanswernote>prt_pi1_cycles-1-T</trueanswernote>
+        <truefeedback format="html">
+          <text></text>
+        </truefeedback>
+        <falsescoremode>=</falsescoremode>
+        <falsescore>0.0000000</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>-1</falsenextnode>
+        <falseanswernote>prt_pi1_cycles-1-F</falseanswernote>
+        <falsefeedback format="html">
+          <text><![CDATA[<p>I could not interpret your answer \({@ans_pi1_cycles@}\) as a product of cycles in \(S_{@n@}\).</p>]]></text>
+        </falsefeedback>
+      </node>
+      <node>
+        <name>1</name>
+        <answertest>AlgEquiv</answertest>
+        <sans>ans_p1cyc_are_disjoint</sans>
+        <tans>true</tans>
+        <testoptions></testoptions>
+        <quiet>1</quiet>
+        <truescoremode>+</truescoremode>
+        <truescore>0.1000000</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>2</truenextnode>
+        <trueanswernote>prt_pi1_cycles-2-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Your answer was interpreted as a composition of cycles \({@ans_p1cyc_tuned_p@} \in S_{@n@}\), and the cycles are disjoint.</p>]]></text>
+        </truefeedback>
+        <falsescoremode>-</falsescoremode>
+        <falsescore>0.0000000</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>2</falsenextnode>
+        <falseanswernote>prt_pi1_cycles-2-F</falseanswernote>
+        <falsefeedback format="html">
+          <text><![CDATA[<p></p><p>Your answer was interpreted as a composition of cycles \({@ans_p2cyc_tuned_p@} \in S_{@n@}\), but the cycles are <b>not</b> disjoint.<br></p><br><p></p>]]></text>
+        </falsefeedback>
+      </node>
+      <node>
+        <name>2</name>
+        <answertest>AlgEquiv</answertest>
+        <sans>ans_p1cyc_perm</sans>
+        <tans>p1</tans>
+        <testoptions></testoptions>
+        <quiet>1</quiet>
+        <truescoremode>+</truescoremode>
+        <truescore>0.9000000</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt_pi1_cycles-3-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Your answer represents the permutation \({@ans_p1cyc_perm_p@} \in S_{@n@}\), which indeed equals \(\sigma^{-1}\).</p>]]></text>
+        </truefeedback>
+        <falsescoremode>-</falsescoremode>
+        <falsescore>0.0000000</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>-1</falsenextnode>
+        <falseanswernote>prt_pi1_cycles-3-F</falseanswernote>
+        <falsefeedback format="html">
+          <text><![CDATA[<p>Your answer represents the permutation \({@ans_p1cyc_perm_p@} \in S_{@n@}\), which does <b>not</b> equal \(\sigma^{-1} = {@p1_p@} \in S_{@n@}\).</p>]]></text>
+        </falsefeedback>
+      </node>
+    </prt>
+    <prt>
+      <name>prt_pi2_cycles</name>
+      <value>1.0000000</value>
+      <autosimplify>1</autosimplify>
+      <feedbackstyle>1</feedbackstyle>
+      <feedbackvariables>
+        <text><![CDATA[ans_p2cyc_tuned : if is_cycle(ans_pi2_cycles) then [ans_pi2_cycles] else ans_pi2_cycles;
+ans_p2cyc_are_cycles : are_cycles(ans_p2cyc_tuned,n);
+ans_p2cyc_are_disjoint : are_disjoint_cycles(ans_p2cyc_tuned,n);
+ans_p2cyc_perm : if ans_p2cyc_are_cycles then permutation_from_cycles(ans_p2cyc_tuned,n) else [];
+ans_p2cyc_tuned_p : if ans_p2cyc_are_cycles then format_cycles(ans_p2cyc_tuned) else "";
+ans_p2cyc_perm_p : format_permutation(ans_p2cyc_perm);]]></text>
+      </feedbackvariables>
+      <node>
+        <name>0</name>
+        <answertest>AlgEquiv</answertest>
+        <sans>ans_p2cyc_are_cycles</sans>
+        <tans>true</tans>
+        <testoptions></testoptions>
+        <quiet>1</quiet>
+        <truescoremode>+</truescoremode>
+        <truescore>0.0000000</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>1</truenextnode>
+        <trueanswernote>prt1-1-T</trueanswernote>
+        <truefeedback format="html">
+          <text></text>
+        </truefeedback>
+        <falsescoremode>+</falsescoremode>
+        <falsescore>0.0000000</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>-1</falsenextnode>
+        <falseanswernote>prt1-1-F</falseanswernote>
+        <falsefeedback format="html">
+          <text><![CDATA[<p>I could not interpret your answer \({@ans_pi2_cycles@}\) as a product of cycles in \(S_{@n@}\).</p>]]></text>
+        </falsefeedback>
+      </node>
+      <node>
+        <name>1</name>
+        <answertest>AlgEquiv</answertest>
+        <sans>ans_p2cyc_are_disjoint</sans>
+        <tans>true</tans>
+        <testoptions></testoptions>
+        <quiet>1</quiet>
+        <truescoremode>+</truescoremode>
+        <truescore>0.1000000</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>2</truenextnode>
+        <trueanswernote>prt_pi2_cycles-2-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Your answer was interpreted as a composition of cycles \({@ans_p2cyc_tuned_p@} \in S_{@n@}\), and the cycles are disjoint.<br></p>]]></text>
+        </truefeedback>
+        <falsescoremode>-</falsescoremode>
+        <falsescore>0.0000000</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>2</falsenextnode>
+        <falseanswernote>prt_pi2_cycles-2-F</falseanswernote>
+        <falsefeedback format="html">
+          <text><![CDATA[<p>Your answer was interpreted as a composition of cycles \({@ans_p2cyc_tuned_p@} \in S_{@n@}\), but the cycles are <b>not</b> disjoint.<br></p>]]></text>
+        </falsefeedback>
+      </node>
+      <node>
+        <name>2</name>
+        <answertest>AlgEquiv</answertest>
+        <sans>ans_p2cyc_perm</sans>
+        <tans>p2</tans>
+        <testoptions></testoptions>
+        <quiet>1</quiet>
+        <truescoremode>+</truescoremode>
+        <truescore>0.9000000</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt_pi2_cycles-3-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Your answer represents the permutation \({@ans_p2cyc_perm_p@} \in S_{@n@}\), which indeed equals \(\sigma^2\).<br></p>]]></text>
+        </truefeedback>
+        <falsescoremode>-</falsescoremode>
+        <falsescore>0.0000000</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>-1</falsenextnode>
+        <falseanswernote>prt_pi2_cycles-3-F</falseanswernote>
+        <falsefeedback format="html">
+          <text><![CDATA[<p>Your answer represents the permutation \({@ans_p2cyc_perm_p@} \in S_{@n@}\), which does <b>not</b> equal \(\sigma^2 = {@p2_p@} \in S_{@n@}\).<br></p>]]></text>
+        </falsefeedback>
+      </node>
+    </prt>
+    <prt>
+      <name>prt_pi2_sign</name>
+      <value>1.0000000</value>
+      <autosimplify>1</autosimplify>
+      <feedbackstyle>1</feedbackstyle>
+      <feedbackvariables>
+        <text></text>
+      </feedbackvariables>
+      <node>
+        <name>0</name>
+        <answertest>AlgEquiv</answertest>
+        <sans>ans_pi2_sign</sans>
+        <tans>p2_sign</tans>
+        <testoptions></testoptions>
+        <quiet>0</quiet>
+        <truescoremode>+</truescoremode>
+        <truescore>1.0000000</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt_pi2_sign-1-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>You determined the sign of \(\sigma^2\) correctly.</p>]]></text>
+        </truefeedback>
+        <falsescoremode>+</falsescoremode>
+        <falsescore>0.0000000</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>-1</falsenextnode>
+        <falseanswernote>prt_pi2_sign-1-F</falseanswernote>
+        <falsefeedback format="html">
+          <text><![CDATA[<p>You did <b>not</b> determine the <b>sign</b> of \(\sigma^2\) correctly.</p>]]></text>
+        </falsefeedback>
+      </node>
+    </prt>
+    <deployedseed>2076507224</deployedseed>
+    <deployedseed>351878926</deployedseed>
+    <deployedseed>1762142833</deployedseed>
+    <deployedseed>354789743</deployedseed>
+    <deployedseed>33699746</deployedseed>
+    <deployedseed>476675600</deployedseed>
+    <deployedseed>1088804967</deployedseed>
+    <deployedseed>465947876</deployedseed>
+    <deployedseed>1976495168</deployedseed>
+    <deployedseed>361148852</deployedseed>
+    <deployedseed>996826207</deployedseed>
+    <deployedseed>2132044058</deployedseed>
+    <deployedseed>2071506635</deployedseed>
+    <deployedseed>1440869403</deployedseed>
+    <deployedseed>1978183608</deployedseed>
+    <deployedseed>1415711332</deployedseed>
+    <deployedseed>2099230314</deployedseed>
+    <deployedseed>326720603</deployedseed>
+    <deployedseed>1785580013</deployedseed>
+    <deployedseed>1823324108</deployedseed>
+    <deployedseed>1284272373</deployedseed>
+    <deployedseed>1266069794</deployedseed>
+    <deployedseed>626392709</deployedseed>
+    <deployedseed>523967240</deployedseed>
+    <deployedseed>794116625</deployedseed>
+    <deployedseed>1249883627</deployedseed>
+    <deployedseed>1108254318</deployedseed>
+    <deployedseed>483435246</deployedseed>
+    <deployedseed>419852718</deployedseed>
+    <deployedseed>2071702460</deployedseed>
+    <deployedseed>303220328</deployedseed>
+    <deployedseed>1395414433</deployedseed>
+    <deployedseed>960171611</deployedseed>
+    <deployedseed>1658874484</deployedseed>
+    <deployedseed>1337663403</deployedseed>
+    <deployedseed>1862200490</deployedseed>
+    <deployedseed>1007841335</deployedseed>
+    <deployedseed>1685078195</deployedseed>
+    <deployedseed>1744252271</deployedseed>
+    <deployedseed>1632450921</deployedseed>
+    <deployedseed>365017503</deployedseed>
+    <deployedseed>196944380</deployedseed>
+    <deployedseed>724337755</deployedseed>
+    <deployedseed>1225681638</deployedseed>
+    <deployedseed>155895112</deployedseed>
+    <deployedseed>688124951</deployedseed>
+    <deployedseed>1924658948</deployedseed>
+    <deployedseed>842271816</deployedseed>
+    <deployedseed>1331510040</deployedseed>
+    <deployedseed>1391175254</deployedseed>
+    <qtest>
+      <testcase>1</testcase>
+      <testinput>
+        <name>ans_pi1_cycles</name>
+        <value>p1_cycles</value>
+      </testinput>
+      <testinput>
+        <name>ans_pi2_cycles</name>
+        <value>p2_cycles</value>
+      </testinput>
+      <testinput>
+        <name>ans_pi2_sign</name>
+        <value>1</value>
+      </testinput>
+      <expected>
+        <name>prt_pi1_cycles</name>
+        <expectedscore>1.0000000</expectedscore>
+        <expectedpenalty>0.0000000</expectedpenalty>
+        <expectedanswernote>prt_pi1_cycles-3-T</expectedanswernote>
+      </expected>
+      <expected>
+        <name>prt_pi2_cycles</name>
+        <expectedscore>1.0000000</expectedscore>
+        <expectedpenalty>0.0000000</expectedpenalty>
+        <expectedanswernote>prt_pi2_cycles-3-T</expectedanswernote>
+      </expected>
+      <expected>
+        <name>prt_pi2_sign</name>
+        <expectedscore>1.0000000</expectedscore>
+        <expectedpenalty>0.0000000</expectedpenalty>
+        <expectedanswernote>prt_pi2_sign-1-T</expectedanswernote>
+      </expected>
+    </qtest>
+    <qtest>
+      <testcase>2</testcase>
+      <testinput>
+        <name>ans_pi1_cycles</name>
+        <value>[[1,2,3,4,5,6]]</value>
+      </testinput>
+      <testinput>
+        <name>ans_pi2_cycles</name>
+        <value>[[1,2,3,4,5,6]]</value>
+      </testinput>
+      <testinput>
+        <name>ans_pi2_sign</name>
+        <value>-1</value>
+      </testinput>
+      <expected>
+        <name>prt_pi1_cycles</name>
+        <expectedscore>0.1000000</expectedscore>
+        <expectedpenalty>0.0000000</expectedpenalty>
+        <expectedanswernote>prt_pi1_cycles-3-F</expectedanswernote>
+      </expected>
+      <expected>
+        <name>prt_pi2_cycles</name>
+        <expectedscore>0.1000000</expectedscore>
+        <expectedpenalty>0.0000000</expectedpenalty>
+        <expectedanswernote>prt_pi2_cycles-3-F</expectedanswernote>
+      </expected>
+      <expected>
+        <name>prt_pi2_sign</name>
+        <expectedscore>0.0000000</expectedscore>
+        <expectedpenalty>0.0000000</expectedpenalty>
+        <expectedanswernote>prt_pi2_sign-1-F</expectedanswernote>
+      </expected>
+    </qtest>
+    <tags>
+      <tag><text>permutations</text>
+</tag>
+      <tag><text>n=6</text>
+</tag>
+      <tag><text>mock_ct1</text>
+</tag>
+    </tags>
+  </question>
+
+</quiz>
